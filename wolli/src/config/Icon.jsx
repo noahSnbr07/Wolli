@@ -1,6 +1,6 @@
 export default function icon({ icon, className }) {
  return (
-  <span class={`material-symbols-outlined ${className}`}>
+  <span className={`material-symbols-rounded ${className}`}>
    {icon}
   </span>
  )

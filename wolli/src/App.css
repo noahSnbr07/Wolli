@@ -6,6 +6,9 @@
   --font-1: #ffffff;
   --font-2: #9b9b9b;
   --accent: rgb(250, 50, 50);
+  --border: 15px;
+  --glow: 0px 0px 5px 5px var(--accent);
+  --text-glow: 0px 0px 8px var(--font-2);
 }
 
 #root,
@@ -24,6 +27,7 @@ html {
   font-family: 'Quicksand';
   overflow: hidden;
   text-align: center;
+  transition: 250ms ease-in;
 }
 
 .material-symbols-rounded {
@@ -32,4 +36,20 @@ html {
     'wght' 400,
     'GRAD' 0,
     'opsz' 48
+}
+
+.fullscreen {
+  height: 100dvh;
+  width: 100dvw;
+  color: var(--font-1);
+}
+
+.inserted {
+  height: 90dvh;
+  width: 100dvw;
+}
+
+.navbar {
+  width: 100dvw;
+  height: 10dvh;
 }
