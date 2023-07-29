@@ -4,15 +4,17 @@ import Github from '../../icons/github.png';
 import Instagram from '../../icons/instagram.png';
 import Reddit from '../../icons/reddit.png';
 import Icon from '../../config/Icon.jsx';
+import { Link } from 'react-router-dom';
 export default function Welcome() {
   const [users, setUsers] = useState(['noah', 'max', 'jannis', 'lina']);
   const [UserPopup, setUserPopup] = useState(false);
   const [newLoggedInUser, setNewLoggedInUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const StartButton = () => {
     return (
-      <buttons className='startButton'>
+      <button className='startButton'>
         Start
-      </buttons>
+      </button>
     );
   }
 
@@ -28,9 +30,11 @@ export default function Welcome() {
 
   const SettingsButton = () => {
     return (
-      <button className='settingsButton'>
-        Einstellungen
-      </button>
+      <Link to={'/settings'}>
+        <button className='settingsButton'>
+          Einstellungen
+        </button>
+      </Link>
     );
   }
 
@@ -51,16 +55,16 @@ export default function Welcome() {
         localStorage.setItem('UserProfile', JSON.stringify({
           //default UserProfile
           gamesplayed: 0,
+          gameslost: 0,
+          gameswon: 0,
           pointsscored: 0,
           timeplayed: 0,
-          gameswon: 0,
-          gameslost: 0,
-          userProfile: selectLastUser('random'),
         }));
       } else {
-        const retrievedUserProfile = JSON.parse(localStorage.getItem('UserProfile'));
-        const lastUser = retrievedUserProfile.userProfile;
+        const lastUser = localStorage.getItem('CurrentUser');
         setLastLoggedInUser(lastUser);
+      } if (localStorage.getItem('CurrentUser') === null) {
+        localStorage.setItem('CurrentUser', currentUser);
       }
     }, []);
 
@@ -71,14 +75,20 @@ export default function Welcome() {
       </button>
     );
   }
-
   const SelectUserBoxPopup = () => {
+    function handleUserChange(user) {
+      console.log(user)
+      localStorage.setItem('CurrentUser', user);
+      setNewLoggedInUser(user);
+      setUserPopup(false);
+      setCurrentUser(user);
+    }
+
     return (
       <div style={UserPopup ? { display: 'flex' } : { display: 'none' }} className='selectUserBoxPopup'>
         {users.map((user, index) => (
           <button onClick={() => {
-            setUserPopup(false);
-            setNewLoggedInUser(user);
+            handleUserChange(user);
           }}
             key={index}
             className='userSelector'

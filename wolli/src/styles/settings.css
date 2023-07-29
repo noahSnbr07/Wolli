@@ -1,0 +1,55 @@
+.settings {
+ display: flex;
+ flex-direction: column;
+ justify-content: center;
+ align-items: center;
+
+ & h1 {
+  height: 10%;
+  width: 100%;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+ }
+
+ & .settings-container {
+  height: 90%;
+  width: 100%;
+
+  & .settingsButton {
+   width: 90%;
+   height: 10%;
+   background-color: var(--accent);
+   margin: 02.5% 0 2.5%;
+   border: none;
+   border-radius: 25px;
+   color: var(--font-1);
+   font-size: 2rem;
+  }
+
+  & .gotomainmenu {
+   width: 90%;
+   height: 10%;
+   background-color: var(--accent);
+   margin: 02.5% 0 2.5%;
+   border: none;
+   border-radius: 25px;
+   color: var(--font-1);
+   font-size: 2rem;
+
+   & a {
+    color: var(--font-1);
+    text-decoration: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    & span {
+     margin-right: 5%;
+     font-size: 3rem;
+    }
+   }
+  }
+ }
+}
