@@ -31,7 +31,7 @@
   & .gotomainmenu {
    width: 90%;
    height: 10%;
-   background-color: var(--accent);
+   background-color: var(--bg-2);
    margin: 02.5% 0 2.5%;
    border: none;
    border-radius: 25px;

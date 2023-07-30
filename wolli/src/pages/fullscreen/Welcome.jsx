@@ -12,9 +12,9 @@ export default function Welcome() {
   const [currentUser, setCurrentUser] = useState(null);
   const StartButton = () => {
     return (
-      <button className='startButton'>
+      <Link to={'/main'} className='startButton'>
         Start
-      </button>
+      </Link>
     );
   }
 
@@ -65,7 +65,12 @@ export default function Welcome() {
         setLastLoggedInUser(lastUser);
       } if (localStorage.getItem('CurrentUser') === null) {
         localStorage.setItem('CurrentUser', currentUser);
-      }
+      } if (localStorage.getItem('Game Behavior') === null) {
+        localStorage.setItem('Game Behavior', JSON.stringify({
+          matchtime: 30,
+          pointstoscore: 25,
+        }));
+      } else { return; }
     }, []);
 
     return (
