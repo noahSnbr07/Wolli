@@ -143,3 +143,13 @@
     height: 100%;
   }
 }
+
+.menu {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 3%;
+  width: 100dvw;
+  background-color: rgba(0, 0, 0, 0.3);
+  z-index: 999;
+}

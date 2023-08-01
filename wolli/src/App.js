@@ -10,7 +10,6 @@ export default function App() {
   return (
     <div className="App">
       <Routes>
-        {/* FULLSCREEN PAGES */}
         <Route path='/' element={<Welcome />} />
         <Route path='/settings' element={<Settings />} />
         <Route path='/match' element={<Match />} />
