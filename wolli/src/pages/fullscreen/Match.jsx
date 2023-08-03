@@ -4,8 +4,12 @@ import Icon from '../../config/Icon';
 
 export default function Match() {
   const [active, setActiveBtn] = useState({ team: true, match: false });
-  const [defaultSettings, setDefaultSettings] = useState({});
   const [wonPopup, setWonPopup] = useState(false);
+  const [matchBehavior, setMatchBehavior] = useState({});
+  const [hasWon, setWon] = useState({ team1: false, team2: false });
+  const [currentUser, setCurrentUser] = useState('');
+  const [userProfile, setUserProfile] = useState({});
+
   const [isActive, setActive] = useState({
     configuration: true,
     matchhost: false,
@@ -14,9 +18,6 @@ export default function Match() {
     team1: { players: 0, score: 0 },
     team2: { players: 0, score: 0 },
   });
-  const [matchBehavior, setMatchBehavior] = useState({});
-  const [hasWon, setWon] = useState({ team1: false, team2: false });
-  const [currentUser, setCurrentUser] = useState('')
 
   useEffect(() => {
     localStorage.setItem('Team Configuration', JSON.stringify(teams));
@@ -24,11 +25,11 @@ export default function Match() {
 
   useEffect(() => {
     let retrievedObject = JSON.parse(localStorage.getItem('Game Behavior'));
-    setDefaultSettings(retrievedObject);
-    retrievedObject = JSON.parse(localStorage.getItem('Game Behavior'));
     setMatchBehavior(retrievedObject);
     retrievedObject = localStorage.getItem('CurrentUser');
     setCurrentUser(retrievedObject);
+    retrievedObject = JSON.parse(localStorage.getItem('UserProfile'));
+    setUserProfile(retrievedObject);
   }, []);
 
   function Configuration() {
@@ -151,14 +152,38 @@ export default function Match() {
       </div>
     );
   }
+  function resetStatistic() {
+    const userProfileData = JSON.parse(localStorage.getItem('UserProfile'));
+
+    if (hasWon.team1) {
+      const updatedUserProfile = {
+        ...userProfileData,
+        gameswon: userProfileData.gameswon + 1,
+        gamesplayed: userProfile.gamesplayed + 1,
+        timeplayed: userProfile.timeplayed + matchBehavior.matchtime,
+      };
+      localStorage.setItem('UserProfile', JSON.stringify(updatedUserProfile));
+    }
+    if (hasWon.team2) {
+      const updatedUserProfile = {
+        ...userProfileData,
+        gameslost: userProfile.gameslost + 1,
+        gamesplayed: userProfile.gamesplayed + 1,
+        timeplayed: userProfile.timeplayed + matchBehavior.matchtime,
+      };
+      localStorage.setItem('UserProfile', JSON.stringify(updatedUserProfile));
+    }
+  }
+
 
   function endMatch() {
     setActive({ configuration: true, matchhost: false });
-    setWonPopup(false); // Reset wonPopup state here
+    setWonPopup(false);
     setTeams({
       team1: { players: 0, score: 0 },
       team2: { players: 0, score: 0 },
     });
+    resetStatistic();
   }
 
   function WinnerDisplay() {
@@ -169,10 +194,12 @@ export default function Match() {
       </div>
     );
   }
-
+  //the function wher everything for a going match is
   function Matchhost() {
     const [isLeading, setLeading] = useState({ team1: false, team2: false });
-
+    const [isMatchOver, setIsMatchOver] = useState(false);
+    const [timerRunning, setTimerRunning] = useState(false);
+    const [timeRemaining, setTimeRemaining] = useState(matchBehavior.matchtime * 60);
 
     function setTeamsScore(operation, team) {
       if (operation === 'increase') {
@@ -188,7 +215,7 @@ export default function Match() {
       }
     }
 
-
+    //checks and marks the leading team visually
     function checkLeader() {
       if (wonPopup) { return; }
       else {
@@ -203,23 +230,34 @@ export default function Match() {
           setLeading({ team1: false, team2: false });
         }
 
-        if (team1Score >= defaultSettings.pointstoscore) {
+        if (team1Score >= matchBehavior.pointstoscore) {
           setWon({ team1: true, team2: false });
           setWonPopup(true);
-        } else if (team2Score >= defaultSettings.pointstoscore) {
+        } else if (team2Score >= matchBehavior.pointstoscore) {
           setWon({ team1: false, team2: true });
           setWonPopup(true);
         }
       }
     }
 
+    //ifg time runs out a winner will be decided by score so far
+    function checkWinByTime() {
+      const team1Score = teams.team1.score;
+      const team2Score = teams.team2.score;
+      if (team1Score >= matchBehavior.pointstoscore) {
+        setWon({ team1: true, team2: false });
+        setWonPopup(true);
+      } else if (team2Score >= matchBehavior.pointstoscore) {
+        setWon({ team1: false, team2: true });
+        setWonPopup(true);
+      }
+    }
+
     useEffect(() => {
-      console.table(teams);
       checkLeader();
     }, [teams]);
 
     const TeamContainer = ({ scoreContext, team, player, leader, style }) => {
-
       return (
         <div style={style} className="team-container">
           <section >
@@ -235,64 +273,55 @@ export default function Match() {
         </div >
       );
     };
+
     //a timer for the current match
     const Timer = () => {
-      const [time, setTime] = useState(defaultSettings.matchtime * 60);
-      const [isRunning, setIsRunning] = useState(false);
-
       useEffect(() => {
         let interval;
-        if (isRunning && time > 0) {
+        if (timerRunning && timeRemaining > 0) {
           interval = setInterval(() => {
-            setTime(prevTime => prevTime - 1);
+            setTimeRemaining((prevTime) => prevTime - 1);
           }, 1000);
         }
-
+        if (timerRunning && timeRemaining === 0) {
+          setIsMatchOver(true);
+          clearInterval(interval);
+          checkWinByTime();
+          setTimerRunning(false);
+        }
         return () => {
           clearInterval(interval);
         };
-      }, [isRunning, time]);
+      }, [timerRunning, timeRemaining, checkWinByTime]);
 
       const handlePlayPauseClick = () => {
-        setIsRunning(prevState => !prevState);
+        setTimerRunning((prevState) => !prevState);
       };
 
       const formatTime = (seconds) => {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
-        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
       };
 
       return (
-        <div className='info-time'>
-          <div>{formatTime(time)}</div>
-          <button onClick={handlePlayPauseClick}>{isRunning ? <Icon icon='pause' /> : <Icon icon='play_arrow' />}</button>
+        <div className="info-time">
+          <div>{formatTime(timeRemaining)}</div>
+          <button onClick={handlePlayPauseClick}>
+            {timerRunning ? <Icon icon="pause" /> : <Icon icon="play_arrow" />}
+          </button>
         </div>
       );
     };
 
-    function TeamRatio() {
-
-      return (
-        <div className='info-ratio'>
-          <h1> {teams.team1.players} </h1>
-          <h1> vs </h1>
-          <h1> {teams.team2.players} </h1>
-        </div>
-      )
-    }
-
-    function CurrentUser() {
-      return (
-        <div className='info-user'>
-          <h1> {currentUser} </h1>
-        </div>
-      )
-    }
-
     return (
       <div className='matchhost fullscreen'>
-        {wonPopup ? (
+        {isMatchOver ? (
+          <div className="won-popup">
+            <h1>Time is up! The winner is {hasWon.team1 ? 'Team 1' : 'Team 2'} with {teams.team1.score} points.</h1>
+            <button onClick={() => endMatch()}>Okay</button>
+          </div>
+        ) : wonPopup ? (
           <div className="won-popup">
             <h1>Match has ended. The winner is {hasWon.team1 ? 'Team 1' : 'Team 2'} with {teams.team1.score} points.</h1>
             <button onClick={() => endMatch()}>Okay</button>
@@ -316,14 +345,21 @@ export default function Match() {
             />
             <div className='match-overview'>
               <Timer />
-              <TeamRatio />
-              <CurrentUser />
+              <div className='info-ratio'>
+                <h1> {teams.team1.players} </h1>
+                <h1> vs </h1>
+                <h1> {teams.team2.players} </h1>
+              </div>
+              <div className='info-user'>
+                <h1> {currentUser} </h1>
+              </div>
             </div>
           </>
         )}
       </div>
     );
   }
+
 
   return (
     <div className='match'>
