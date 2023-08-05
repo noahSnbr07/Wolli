@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 import '../../styles/match.css';
 import Icon from '../../config/Icon';
 
@@ -10,16 +10,9 @@ export default function Match() {
   const [currentUser, setCurrentUser] = useState('');
   const [userProfile, setUserProfile] = useState({});
   const [isActive, setActive] = useState({ configuration: true, matchhost: false, });
-  const [teams, setTeams] = useState({
-    team1: { players: 0, score: 0 },
-    team2: { players: 0, score: 0 },
-  });
+  const [teams, setTeams] = useState({ team1: { players: 0, score: 0 }, team2: { players: 0, score: 0 }, });
 
-  useEffect(() => { //initialize teamconfiguration object in local storage
-    localStorage.setItem('Team Configuration', JSON.stringify(teams));
-  }, [teams, matchBehavior]);
-
-
+  useEffect(() => { localStorage.setItem('Team Configuration', JSON.stringify(teams)); }, [teams, matchBehavior]);
   useEffect(() => {  //retrieve all neccessary items
     let retrievedObject = JSON.parse(localStorage.getItem('Game Behavior'));
     setMatchBehavior(retrievedObject);
@@ -37,7 +30,7 @@ export default function Match() {
   const [timerFinished, setTimerFinished] = useState(false);
 
 
-  const Timer = React.memo(({ isRunning, timeRemaining, setIsMatchOver, checkWinByTime }) => {
+  const Timer = React.memo(({ endMatchByTimer, isRunning, timeRemaining, setIsMatchOver, checkWinByTime }) => {
     useEffect(() => {
       let interval;
       if (isRunning && timeRemaining > 0) {
@@ -46,13 +39,15 @@ export default function Match() {
         }, 1000);
       }
       if (isRunning && timeRemaining === 0) {
+        //reset timer
         setIsRunning(false);
         setTimerFinished(true);
-        setIsMatchOver(true);
         clearInterval(interval);
-        setIsMatchOver(true);
         setTimeRemaining(matchBehavior.matchtime);
+        //set data
         checkWinByTime();
+        setIsMatchOver(true);
+        endMatchByTimer();
       }
       return () => {
         clearInterval(interval);
@@ -66,32 +61,24 @@ export default function Match() {
     };
 
     return (
-      <div className="info-time">
-        <div>{formatTime(timeRemaining)}</div>
-      </div>
+      <div className="info-time"> <div>{formatTime(timeRemaining)}</div>  </div>
     );
   });
 
 
   function Configuration() {
-    function handleClick(ctx) {
-      ctx === 'team'
-        ? setActiveBtn((prevState) => ({ ...prevState, team: true, match: false }))
-        : setActiveBtn((prevState) => ({ ...prevState, team: false, match: true }));
-    }
+    function handleClick(ctx) { ctx === 'team' ? setActiveBtn((prevState) => ({ ...prevState, team: true, match: false })) : setActiveBtn((prevState) => ({ ...prevState, team: false, match: true })); }
 
     function TeamConfig() {
       function updateHeadstart(teamKey, value) {
         setTeams((prevState) => ({
-          ...prevState,
-          [teamKey]: { ...prevState[teamKey], score: value },
+          ...prevState, [teamKey]: { ...prevState[teamKey], score: value },
         }));
       }
 
       function updatePlayerCount(teamKey, value) {
         setTeams((prevState) => ({
-          ...prevState,
-          [teamKey]: { ...prevState[teamKey], players: value },
+          ...prevState, [teamKey]: { ...prevState[teamKey], players: value },
         }));
       }
 
@@ -116,25 +103,18 @@ export default function Match() {
             <NumberSelect
               onClick={() => updatePlayerCount('team1', teams.team1.players + 1)}
               context='Spieler'
-              value={teams.team1.players}
-            />
-            <NumberSelect
+              value={teams.team1.players} /> <NumberSelect
               onClick={() => updateHeadstart('team1', teams.team1.score + 1)}
               context='Vorsprung'
-              value={teams.team1.score}
-            />
-          </div>
-          <div className='teamconfigArea'>
+              value={teams.team1.score} />
+          </div> <div className='teamconfigArea'>
             <NumberSelect
               onClick={() => updatePlayerCount('team2', teams.team2.players + 1)}
               context='Spieler'
-              value={teams.team2.players}
-            />
-            <NumberSelect
+              value={teams.team2.players} /> <NumberSelect
               onClick={() => updateHeadstart('team2', teams.team2.score + 1)}
               context='Vorsprung'
-              value={teams.team2.score}
-            />
+              value={teams.team2.score} />
           </div>
         </div>
       );
@@ -176,20 +156,14 @@ export default function Match() {
         <nav className='config-nav'>
           <button
             onClick={() => { handleClick('team'); }}
-            className={active.team ? 'btn-active' : 'config-nav-btn'}
-          >
-            <Icon icon='group' /> Team
+            className={active.team ? 'btn-active' : 'config-nav-btn'}  > <Icon icon='group' /> Team
           </button>
           <button
             onClick={() => { handleClick('match'); }}
-            className={active.match ? 'btn-active' : 'config-nav-btn'}
-          >
-            <Icon icon='settings' /> Match
+            className={active.match ? 'btn-active' : 'config-nav-btn'} > <Icon icon='settings' /> Match
           </button>
         </nav>
-        <main className='match-config-area'>
-          {active.match ? <MatchConfig /> : <TeamConfig />}
-        </main>
+        <main className='match-config-area'> {active.match ? <MatchConfig /> : <TeamConfig />}  </main>
       </div>
     );
   }
@@ -200,37 +174,62 @@ export default function Match() {
     if (hasWon.team1) {
       updatedUserProfile = {
         ...userProfileData,
-        gameswon: userProfileData.gameswon + 1,
         gamesplayed: userProfileData.gamesplayed + 1,
+        gameswon: userProfileData.gameswon + 1,
+        gameslost: userProfileData.gameslost,
+        pointsscored: userProfileData.pointsscored + (teams.team1.score),
         timeplayed: userProfileData.timeplayed + matchBehavior.matchtime,
       };
     }
     if (hasWon.team2) {
       updatedUserProfile = {
         ...userProfileData,
-        gameslost: userProfileData.gameslost + 1,
         gamesplayed: userProfileData.gamesplayed + 1,
+        gameswon: userProfileData.gameswon,
+        gameslost: userProfileData.gameslost + 1,
+        pointsscored: userProfileData.pointsscored,
         timeplayed: userProfileData.timeplayed + matchBehavior.matchtime,
       };
     }
     localStorage.setItem('UserProfile', JSON.stringify(updatedUserProfile));
   }
-
+  function resetStatisticByTime(winner) {
+    const userProfileData = JSON.parse(localStorage.getItem('UserProfile'));
+    let updatedUserProfile;
+    if (winner === 'team1') {
+      updatedUserProfile = {
+        ...userProfileData,
+        gamesplayed: userProfileData.gamesplayed + 1,
+        gameswon: userProfileData.gameswon + 1,
+        gameslost: userProfileData.gameslost,
+        pointsscored: userProfileData.pointsscored + teams.team1.score,
+        timeplayed: userProfileData.timeplayed + matchBehavior.matchtime,
+      };
+    } else if (winner === 'team2') {
+      updatedUserProfile = {
+        ...userProfileData,
+        gamesplayed: userProfileData.gamesplayed + 1,
+        gameswon: userProfileData.gameswon,
+        gameslost: userProfileData.gameslost + 1,
+        pointsscored: userProfileData.pointsscored + teams.team2.score,
+        timeplayed: userProfileData.timeplayed + matchBehavior.matchtime,
+      };
+    } else if (winner === 'tie') {
+      updatedUserProfile = { ...userProfileData };
+    }
+    localStorage.setItem('UserProfile', JSON.stringify(updatedUserProfile));
+  }
 
   function endMatch() {
     setActive({ configuration: true, matchhost: false });
     setWonPopup(false);
-    setTeams({
-      team1: { players: 0, score: 0 },
-      team2: { players: 0, score: 0 },
-    });
-    resetStatistic();
-
+    setTeams({ team1: { players: 0, score: 0 }, team2: { players: 0, score: 0 } });
     setIsRunning(true);
     setIsMatchOver(false);
     setTimerFinished(false);
     setTimeRemaining(convertToMinute(1));
     setWon({ team1: false, team2: false });
+    resetStatistic();
   }
 
   function WinnerDisplay() {
@@ -242,27 +241,6 @@ export default function Match() {
     );
   }
 
-  function resetStatisticByTime(teamWhichWon) {
-    const userProfileData = JSON.parse(localStorage.getItem('UserProfile'));
-    let updatedUserProfile = {};
-    if (teamWhichWon === 'team1') {
-      updatedUserProfile = {
-        ...userProfileData,
-        gameswon: userProfileData.gameswon + 1,
-        gamesplayed: userProfileData.gamesplayed + 1,
-        timeplayed: userProfileData.timeplayed + matchBehavior.matchtime,
-      };
-    } else if (teamWhichWon === 'team2') {
-      updatedUserProfile = {
-        ...userProfileData,
-        gameslost: userProfileData.gameslost + 1,
-        gamesplayed: userProfileData.gamesplayed + 1,
-        timeplayed: userProfileData.timeplayed + matchBehavior.matchtime,
-      };
-    }
-    localStorage.setItem('UserProfile', JSON.stringify(updatedUserProfile));
-  }
-
   //the function wher everything for a going match is
   function Matchhost() {
     const [isLeading, setLeading] = useState({ team1: false, team2: false });
@@ -270,36 +248,26 @@ export default function Match() {
     function setTeamsScore(operation, team) {
       if (operation === 'increase') {
         setTeams((prevState) => ({
-          ...prevState,
-          [team]: { ...prevState[team], score: prevState[team].score + 1 },
+          ...prevState, [team]: { ...prevState[team], score: prevState[team].score + 1 },
         }));
       } else if (operation === 'decrease') {
         setTeams((prevState) => ({
-          ...prevState,
-          [team]: { ...prevState[team], score: prevState[team].score - 1 },
+          ...prevState, [team]: { ...prevState[team], score: prevState[team].score - 1 },
         }));
       }
     }
 
-    //checks and marks the leading team visually
     function checkLeader() {
       if (wonPopup) { return; }
       else {
-        const team1Score = teams.team1.score;
-        const team2Score = teams.team2.score;
+        if (teams.team1.score > teams.team2.score) { setLeading({ team1: true, team2: false }); }
+        else if (teams.team2.score > teams.team1.score) { setLeading({ team1: false, team2: true }); }
+        else { setLeading({ team1: false, team2: false }); }
 
-        if (team1Score > team2Score) {
-          setLeading({ team1: true, team2: false });
-        } else if (team2Score > team1Score) {
-          setLeading({ team1: false, team2: true });
-        } else {
-          setLeading({ team1: false, team2: false });
-        }
-
-        if (team1Score >= matchBehavior.pointstoscore) {
+        if (teams.team1.score >= matchBehavior.pointstoscore) {
           setWon({ team1: true, team2: false });
           setWonPopup(true);
-        } else if (team2Score >= matchBehavior.pointstoscore) {
+        } else if (teams.team2.score >= matchBehavior.pointstoscore) {
           setWon({ team1: false, team2: true });
           setWonPopup(true);
         }
@@ -307,18 +275,26 @@ export default function Match() {
     }
 
     function checkWinByTime() {
-      const team1Score = teams.team1.score;
-      const team2Score = teams.team2.score;
-      if (team1Score >= matchBehavior.pointstoscore) {
+      if (teams.team1.score >= matchBehavior.pointstoscore) {
         setWon({ team1: true, team2: false });
         setWonPopup(true);
-        resetStatisticByTime('team1'); // Call resetStatisticByTime here when team 1 wins
-      } else if (team2Score >= matchBehavior.pointstoscore) {
+      } else if (teams.team2.score >= matchBehavior.pointstoscore) {
         setWon({ team1: false, team2: true });
         setWonPopup(true);
-        resetStatisticByTime('team2'); // Call resetStatisticByTime here when team 2 wins
       }
     }
+
+    function endMatchByTimer() {
+      if (teams.team1.score > teams.team2.score) {
+        resetStatisticByTime('team1');
+      } else if (teams.team2.score > teams.team1.score) {
+        resetStatisticByTime('team2');
+      }
+      else {
+        resetStatistic('tie');
+      }
+    }
+
     useEffect(() => {
       checkLeader();
     }, [teams]);
@@ -350,27 +326,24 @@ export default function Match() {
         ) : wonPopup ? (
           <div className="won-popup">
             <h1>Match has ended. The winner is {hasWon.team1 ? 'Team 1' : 'Team 2'} with {teams.team1.score} points.</h1>
-            <button onClick={() => endMatch()}>Okay</button>
+            <button onClick={() => endMatchByTimer()}>Okay</button>
           </div>
         ) : (
-          <>
+          <Fragment>
             <TeamContainer
               name='Mein Team'
               leader={isLeading.team1 ? 'In Führung' : ''}
               style={isLeading.team1 ? { boxShadow: 'inset 0px 0px 25px var(--accent)' } : {}}
               player={teams.team1.players}
               scoreContext={teams.team1.score}
-              team='team1'
-            />
-
+              team='team1' />
             <TeamContainer
               name='Gegner'
               leader={isLeading.team2 ? 'In Führung' : ''}
               style={isLeading.team2 ? { boxShadow: 'inset 0px 0px 25px var(--accent)' } : {}}
               player={teams.team2.players}
               scoreContext={teams.team2.score}
-              team='team2'
-            />
+              team='team2' />
             <div className='match-overview'>
               <Timer
                 timeRemaining={timeRemaining}
@@ -378,7 +351,7 @@ export default function Match() {
                 checkWinByTime={checkWinByTime}
                 isRunning={isRunning}
                 resetStatisticByTime={resetStatisticByTime}
-              />
+                endMatchByTimer={endMatchByTimer} />
               <div className='info-ratio'>
                 <h1> {teams.team1.players} </h1>
                 <h1> vs </h1>
@@ -388,7 +361,7 @@ export default function Match() {
                 <h1> {currentUser} </h1>
               </div>
             </div>
-          </>
+          </Fragment>
         )}
       </div>
     );

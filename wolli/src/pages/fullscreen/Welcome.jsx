@@ -55,8 +55,8 @@ export default function Welcome() {
         localStorage.setItem('UserProfile', JSON.stringify({
           //default UserProfile
           gamesplayed: 0,
-          gameslost: 0,
           gameswon: 0,
+          gameslost: 0,
           pointsscored: 0,
           timeplayed: 0,
         }));
