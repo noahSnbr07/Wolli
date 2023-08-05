@@ -30,7 +30,7 @@ export default function Match() {
   const [timerFinished, setTimerFinished] = useState(false);
 
 
-  const Timer = React.memo(({ endMatchByTimer, isRunning, timeRemaining, setIsMatchOver, checkWinByTime }) => {
+  const Timer = React.memo(({ isRunning, timeRemaining, setIsMatchOver, checkWinByTime }) => {
     useEffect(() => {
       let interval;
       if (isRunning && timeRemaining > 0) {
@@ -47,7 +47,6 @@ export default function Match() {
         //set data
         checkWinByTime();
         setIsMatchOver(true);
-        endMatchByTimer();
       }
       return () => {
         clearInterval(interval);
@@ -190,6 +189,8 @@ export default function Match() {
         pointsscored: userProfileData.pointsscored,
         timeplayed: userProfileData.timeplayed + matchBehavior.matchtime,
       };
+    } else if (!hasWon.team1 && !hasWon.team2) {
+      return;
     }
     localStorage.setItem('UserProfile', JSON.stringify(updatedUserProfile));
   }
@@ -284,17 +285,6 @@ export default function Match() {
       }
     }
 
-    function endMatchByTimer() {
-      if (teams.team1.score > teams.team2.score) {
-        resetStatisticByTime('team1');
-      } else if (teams.team2.score > teams.team1.score) {
-        resetStatisticByTime('team2');
-      }
-      else {
-        resetStatistic('tie');
-      }
-    }
-
     useEffect(() => {
       checkLeader();
     }, [teams]);
@@ -326,7 +316,7 @@ export default function Match() {
         ) : wonPopup ? (
           <div className="won-popup">
             <h1>Match has ended. The winner is {hasWon.team1 ? 'Team 1' : 'Team 2'} with {teams.team1.score} points.</h1>
-            <button onClick={() => endMatchByTimer()}>Okay</button>
+            <button onClick={() => endMatch()}>Okay</button>
           </div>
         ) : (
           <Fragment>
@@ -349,9 +339,7 @@ export default function Match() {
                 timeRemaining={timeRemaining}
                 setIsMatchOver={setIsMatchOver}
                 checkWinByTime={checkWinByTime}
-                isRunning={isRunning}
-                resetStatisticByTime={resetStatisticByTime}
-                endMatchByTimer={endMatchByTimer} />
+                isRunning={isRunning} />
               <div className='info-ratio'>
                 <h1> {teams.team1.players} </h1>
                 <h1> vs </h1>
