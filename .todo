@@ -1,2 +1,3 @@
 beim erstmaligen einloggen UserSelector komponenten Platzhalter geben
 animationen und übergänge zwischen komponenten
+matchauswertung durch timeout implementieren

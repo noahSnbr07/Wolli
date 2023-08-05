@@ -10,10 +10,17 @@ export default function Match() {
   const [currentUser, setCurrentUser] = useState('');
   const [userProfile, setUserProfile] = useState({});
   const [isActive, setActive] = useState({ configuration: true, matchhost: false, });
-  const [teams, setTeams] = useState({ team1: { players: 0, score: 0 }, team2: { players: 0, score: 0 }, });
+  const [teams, setTeams] = useState({
+    team1: { players: 0, score: 0 }, team2: { players: 0, score: 0 },
+  });
 
-  useEffect(() => { localStorage.setItem('Team Configuration', JSON.stringify(teams)); }, [teams, matchBehavior]);
-  useEffect(() => {  //retrieve all neccessary items
+  //reset configuration settings onchnage in settings
+  useEffect(() => {
+    localStorage.setItem('Team Configuration', JSON.stringify(teams));
+  }, [teams, matchBehavior]);
+
+  //retrive important localStorage values
+  useEffect(() => {
     let retrievedObject = JSON.parse(localStorage.getItem('Game Behavior'));
     setMatchBehavior(retrievedObject);
     retrievedObject = localStorage.getItem('CurrentUser');
@@ -22,6 +29,7 @@ export default function Match() {
     setUserProfile(retrievedObject);
   }, []);
 
+  //display as minutes
   const convertToMinute = ((sec) => { return (sec * 60); });
 
   const [isRunning, setIsRunning] = useState(true);
@@ -29,7 +37,7 @@ export default function Match() {
   const [timeRemaining, setTimeRemaining] = useState(convertToMinute(1));
   const [timerFinished, setTimerFinished] = useState(false);
 
-
+  //timer to keep track of timing rules
   const Timer = React.memo(({ isRunning, timeRemaining, setIsMatchOver, checkWinByTime }) => {
     useEffect(() => {
       let interval;
@@ -53,6 +61,7 @@ export default function Match() {
       };
     }, [timeRemaining, setIsMatchOver, checkWinByTime, isRunning]);
 
+    //format e.g 300 secs to 05:00 min
     const formatTime = (seconds) => {
       const mins = Math.floor(seconds / 60);
       const secs = seconds % 60;
@@ -60,11 +69,13 @@ export default function Match() {
     };
 
     return (
-      <div className="info-time"> <div>{formatTime(timeRemaining)}</div>  </div>
+      <div className="info-time">
+        <div>{formatTime(timeRemaining)}</div>
+      </div>
     );
   });
 
-
+  //set teams players headstart values
   function Configuration() {
     function handleClick(ctx) { ctx === 'team' ? setActiveBtn((prevState) => ({ ...prevState, team: true, match: false })) : setActiveBtn((prevState) => ({ ...prevState, team: false, match: true })); }
 
@@ -81,6 +92,7 @@ export default function Match() {
         }));
       }
 
+      //component to change values of numbers
       function NumberSelect({ context, value, onClick }) {
         return (
           <div className='numberselect'>
@@ -119,6 +131,7 @@ export default function Match() {
       );
     }
 
+    //match behavior settingsconfiguration component
     function MatchConfig() {
       return (
         <div className='match-config'>
@@ -166,6 +179,7 @@ export default function Match() {
       </div>
     );
   }
+
   //edit useres statistic based on match
   function resetStatistic() {
     const userProfileData = JSON.parse(localStorage.getItem('UserProfile'));
@@ -194,33 +208,7 @@ export default function Match() {
     }
     localStorage.setItem('UserProfile', JSON.stringify(updatedUserProfile));
   }
-  function resetStatisticByTime(winner) {
-    const userProfileData = JSON.parse(localStorage.getItem('UserProfile'));
-    let updatedUserProfile;
-    if (winner === 'team1') {
-      updatedUserProfile = {
-        ...userProfileData,
-        gamesplayed: userProfileData.gamesplayed + 1,
-        gameswon: userProfileData.gameswon + 1,
-        gameslost: userProfileData.gameslost,
-        pointsscored: userProfileData.pointsscored + teams.team1.score,
-        timeplayed: userProfileData.timeplayed + matchBehavior.matchtime,
-      };
-    } else if (winner === 'team2') {
-      updatedUserProfile = {
-        ...userProfileData,
-        gamesplayed: userProfileData.gamesplayed + 1,
-        gameswon: userProfileData.gameswon,
-        gameslost: userProfileData.gameslost + 1,
-        pointsscored: userProfileData.pointsscored + teams.team2.score,
-        timeplayed: userProfileData.timeplayed + matchBehavior.matchtime,
-      };
-    } else if (winner === 'tie') {
-      updatedUserProfile = { ...userProfileData };
-    }
-    localStorage.setItem('UserProfile', JSON.stringify(updatedUserProfile));
-  }
-
+  //reinitialize timer and reset values to start next match
   function endMatch() {
     setActive({ configuration: true, matchhost: false });
     setWonPopup(false);
@@ -232,7 +220,7 @@ export default function Match() {
     setWon({ team1: false, team2: false });
     resetStatistic();
   }
-
+  //little popup to show win of team
   function WinnerDisplay() {
     return (
       <div className='wonscreen'>
@@ -258,6 +246,7 @@ export default function Match() {
       }
     }
 
+    //marks leading team visually with a red inset shadow
     function checkLeader() {
       if (wonPopup) { return; }
       else {
@@ -275,6 +264,7 @@ export default function Match() {
       }
     }
 
+    //set winner by time (doesnt count as win)
     function checkWinByTime() {
       if (teams.team1.score >= matchBehavior.pointstoscore) {
         setWon({ team1: true, team2: false });
@@ -285,10 +275,12 @@ export default function Match() {
       }
     }
 
+    //chck for new leader each time a team scores
     useEffect(() => {
       checkLeader();
     }, [teams]);
 
+    //2 teams component 
     const TeamContainer = ({ scoreContext, team, player, leader, style, name }) => {
       return (
         <div style={style} className="team-container">
@@ -355,7 +347,7 @@ export default function Match() {
     );
   }
 
-
+  //main returnment statement
   return (
     <div className='match'>
       <main className='match-main'>
