@@ -10,6 +10,7 @@ export default function Welcome() {
   const [UserPopup, setUserPopup] = useState(false);
   const [newLoggedInUser, setNewLoggedInUser] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+
   const StartButton = () => {
     return (
       <Link to={'/main'} className='startButton'>
@@ -17,6 +18,12 @@ export default function Welcome() {
       </Link>
     );
   }
+
+  useEffect(() => {
+    if (localStorage.getItem('MatchHistory') === null) {
+      localStorage.setItem('MatchHistory', JSON.stringify({}));
+    }
+  }, []);
 
   const SocialBox = () => {
     return (

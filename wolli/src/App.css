@@ -48,3 +48,16 @@ html {
   height: 90dvh;
   width: 100dvw;
 }
+
+::-webkit-scrollbar {
+  width: 1em;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 125px;
+}

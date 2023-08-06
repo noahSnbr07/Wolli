@@ -1,14 +1,16 @@
 import React, { useState, useEffect, Fragment } from 'react';
 import '../../styles/match.css';
 import Icon from '../../config/Icon';
+import { Link } from 'react-router-dom';
 
 export default function Match() {
   const [active, setActiveBtn] = useState({ team: true, match: false });
   const [wonPopup, setWonPopup] = useState(false);
   const [matchBehavior, setMatchBehavior] = useState({});
+  const [userProfile, setUserProfile] = useState({});
+  const [history, setHistory] = useState({});
   const [hasWon, setWon] = useState({ team1: false, team2: false });
   const [currentUser, setCurrentUser] = useState('');
-  const [userProfile, setUserProfile] = useState({});
   const [isActive, setActive] = useState({ configuration: true, matchhost: false, });
   const [teams, setTeams] = useState({
     team1: { players: 0, score: 0 }, team2: { players: 0, score: 0 },
@@ -27,6 +29,8 @@ export default function Match() {
     setCurrentUser(retrievedObject);
     retrievedObject = JSON.parse(localStorage.getItem('UserProfile'));
     setUserProfile(retrievedObject);
+    retrievedObject = JSON.parse(localStorage.getItem('MatchHistory'));
+
   }, []);
 
   //display as minutes
@@ -135,31 +139,38 @@ export default function Match() {
     function MatchConfig() {
       return (
         <div className='match-config'>
-          <h1> Regelwerk </h1>
-          <div className='match-con-container'>
-            <section style={{ width: '40%' }}>
-              <h2> Punkteziel </h2>
-            </section>
-            <section style={{ width: '60%' }}>
-              <button onClick={() => setMatchBehavior(prevState => ({ ...prevState, pointstoscore: prevState.pointstoscore + 1 }))}> + </button>
-              <span> {matchBehavior.pointstoscore} </span>
-              <button onClick={() => setMatchBehavior(prevState => ({ ...prevState, pointstoscore: prevState.pointstoscore - 1 }))}> - </button>
-            </section>
+          <h1 style={{ height: '10%' }}> Regelwerk </h1>
+          <div className='fra'>
+            <div className='match-con-container'>
+              <section style={{ width: '40%' }}>
+                <h2> Punkteziel </h2>
+              </section>
+              <section style={{ width: '60%' }}>
+                <button onClick={() => setMatchBehavior(prevState => ({ ...prevState, pointstoscore: prevState.pointstoscore + 1 }))}> + </button>
+                <span> {matchBehavior.pointstoscore} </span>
+                <button onClick={() => setMatchBehavior(prevState => ({ ...prevState, pointstoscore: prevState.pointstoscore - 1 }))}> - </button>
+              </section>
+            </div>
+            <div className='match-con-container'>
+              <section style={{ width: '40%' }}>
+                <h2> Spielzeit </h2>
+              </section>
+              <section style={{ width: '60%' }}>
+                <button onClick={() => setMatchBehavior(prevState => ({ ...prevState, matchtime: prevState.matchtime + 1 }))}> + </button>
+                <span> {matchBehavior.matchtime} </span>
+                <button onClick={() => setMatchBehavior(prevState => ({ ...prevState, matchtime: prevState.matchtime - 1 }))}> - </button>
+              </section>
+            </div>
           </div>
-          <div className='match-con-container'>
-            <section style={{ width: '40%' }}>
-              <h2> Spielzeit </h2>
-            </section>
-            <section style={{ width: '60%' }}>
-              <button onClick={() => setMatchBehavior(prevState => ({ ...prevState, matchtime: prevState.matchtime + 1 }))}> + </button>
-              <span> {matchBehavior.matchtime} </span>
-              <button onClick={() => setMatchBehavior(prevState => ({ ...prevState, matchtime: prevState.matchtime - 1 }))}> - </button>
-            </section>
+          <div className='fra'>
+            <button onClick={() => { setActive({ configuration: false, matchhost: true }); }} className='startMatch'>
+              <Icon icon='sports' />
+            </button>
+            <button className='backtomain2'>
+              <Link to={'/main'}> <Icon icon='home' /> </Link>
+            </button>
           </div>
-          <button onClick={() => { setActive({ configuration: false, matchhost: true }); }} className='startMatch'>
-            <Icon icon='sports' />
-          </button>
-        </div>
+        </div >
       );
     }
 
@@ -179,6 +190,30 @@ export default function Match() {
       </div>
     );
   }
+
+  function callHistory() {
+    const existingHistory = JSON.parse(localStorage.getItem('MatchHistory')) || {};
+
+    const matchSummary = {
+      WonOrLoss: null,
+      enemyScore: teams.team2.score,
+      myteamScore: teams.team1.score,
+      length: matchBehavior.matchtime,
+    };
+
+    if (hasWon.team1) {
+      matchSummary.WonOrLoss = 'Sieg';
+    } else if (hasWon.team2) {
+      matchSummary.WonOrLoss = 'Niederlage';
+    }
+
+    const currentUserHistory = existingHistory[currentUser] || [];
+    currentUserHistory.push(matchSummary);
+    existingHistory[currentUser] = currentUserHistory;
+
+    localStorage.setItem('MatchHistory', JSON.stringify(existingHistory));
+  }
+
 
   //edit useres statistic based on match
   function resetStatistic() {
@@ -219,6 +254,7 @@ export default function Match() {
     setTimeRemaining(convertToMinute(1));
     setWon({ team1: false, team2: false });
     resetStatistic();
+    callHistory();
   }
   //little popup to show win of team
   function WinnerDisplay() {

@@ -1,0 +1,50 @@
+.history {
+ width: 100%;
+ height: 100%;
+}
+
+.previous-match {
+ width: 90dvw;
+ height: 10dvh;
+ background-color: rgba(255, 255, 255, 0.05);
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ padding: 0 5%;
+ color: var(--font-1);
+ background-color: rgba(255, 255, 255, 0.05);
+ border-radius: 12px;
+ margin: 5% 0;
+
+ & h1 {
+  font-size: 1.5rem;
+  text-align: left;
+  width: 33.33%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+ }
+
+}
+
+
+.mappedMatches {
+ width: 100%;
+ height: 90%;
+ display: flex;
+ justify-content: space-evenly;
+ align-items: center;
+ overflow-y: scroll;
+}
+
+.header {
+ width: 100%;
+ height: 10%;
+ margin: 0;
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ color: var(--font-1);
+}
