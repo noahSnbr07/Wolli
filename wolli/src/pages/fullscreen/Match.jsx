@@ -269,7 +269,7 @@ export default function Match() {
   //the function wher everything for a going match is
   function Matchhost() {
     const [isLeading, setLeading] = useState({ team1: false, team2: false });
-
+    //manipulate scores
     function setTeamsScore(operation, team) {
       if (operation === 'increase') {
         setTeams((prevState) => ({
